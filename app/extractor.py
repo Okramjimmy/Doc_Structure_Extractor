@@ -184,7 +184,19 @@ def extract_checklist(file_path: str | Path) -> Checklist:
     logger.info("Converting document: %s", file_path.name)
 
     try:
-        converter = DocumentConverter()
+        from docling.datamodel.base_models import InputFormat
+        from docling.datamodel.pipeline_options import AcceleratorOptions, PdfPipelineOptions
+        from docling.document_converter import PdfFormatOption
+
+        # Force CPU device for Docling to avoid float64/MPS compatibility issues on macOS
+        accelerator_options = AcceleratorOptions(device="cpu")
+        pipeline_options = PdfPipelineOptions(accelerator_options=accelerator_options)
+
+        converter = DocumentConverter(
+            format_options={
+                InputFormat.PDF: PdfFormatOption(pipeline_options=pipeline_options)
+            }
+        )
         result = converter.convert(str(file_path))
         markdown = result.document.export_to_markdown()
     except Exception as exc:
@@ -216,6 +228,7 @@ def extract_checklist(file_path: str | Path) -> Checklist:
                 section_path=section_path,
                 question=text,
                 response_type=_infer_response_type(text),
+                field_type="Long Text",
                 raw_line=raw,
             )
         )

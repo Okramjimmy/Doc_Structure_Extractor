@@ -40,8 +40,8 @@ pip install -r requirements.txt
 # 4 — Copy environment config (optional — defaults work fine)
 cp .env.example .env
 
-# 5 — Start the server
-uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+# 5 — Start the server (exclude dynamic files from auto-reloading)
+uvicorn app.main:app --reload --reload-exclude "uploads" --reload-exclude "output" --reload-exclude "jobs.db*" --host 0.0.0.0 --port 8000
 ```
 
 **Interactive API docs:** http://localhost:8000/docs  
@@ -101,6 +101,29 @@ curl -X POST http://localhost:8000/api/v1/extract \
 |------|--------|
 | `415` | Unsupported file type |
 | `413` | File exceeds size limit |
+
+---
+
+#### `POST /api/v1/extract-semantic`
+Upload a document and start async **semantic extraction** using **Sentence Transformers (Few-Shot Semantic Search)**. Returns immediately with a `job_id`.
+
+**Supported formats:** `.pdf` `.docx` `.pptx` `.xlsx` `.txt`  
+**Max size:** 50 MB (configurable)
+
+```bash
+curl -X POST http://localhost:8000/api/v1/extract-semantic \
+  -F "file=@Quality_checklist.docx"
+```
+
+**Response `202 Accepted`:**
+```json
+{
+  "job_id": "8c2579df-ea93-4a11-bba6-0158ea9c84e1",
+  "status": "pending",
+  "filename": "Quality checklist_civil works.docx",
+  "created_at": "2026-05-27T16:22:00.388327"
+}
+```
 
 ---
 

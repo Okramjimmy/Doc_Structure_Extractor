@@ -144,7 +144,7 @@ job_store = JobStore()
 # ── Background worker ─────────────────────────────────────────────────────────
 
 
-def run_extraction(job_id: str) -> None:
+def run_extraction(job_id: str, use_semantic: bool = False) -> None:
     """
     Background task: run extraction then persist everything to SQLite.
     Called by FastAPI ``BackgroundTasks`` after upload returns.
@@ -154,12 +154,16 @@ def run_extraction(job_id: str) -> None:
         logger.error("Job %s not found in store", job_id)
         return
 
-    logger.info("Starting extraction for job %s (%s)", job_id, record.filename)
+    logger.info("Starting extraction for job %s (%s) [semantic=%s]", job_id, record.filename, use_semantic)
     record.status = JobStatus.processing
     job_store.update(record)
 
     try:
-        checklist = extract_checklist(record.file_path)
+        if use_semantic:
+            from app.extractor_semantic import extract_checklist_semantic
+            checklist = extract_checklist_semantic(record.file_path)
+        else:
+            checklist = extract_checklist(record.file_path)
         record.checklist = checklist
         record.status = JobStatus.completed
         logger.info(

@@ -52,6 +52,7 @@ CREATE TABLE IF NOT EXISTS questions (
     section_path    TEXT NOT NULL,   -- JSON array
     question        TEXT NOT NULL,
     response_type   TEXT NOT NULL,
+    field_type      TEXT,
     raw_line        TEXT
 );
 
@@ -72,6 +73,12 @@ def _get_connection() -> sqlite3.Connection:
         conn.execute("PRAGMA foreign_keys=ON")
         conn.executescript(_DDL)
         conn.commit()
+        # Graceful migration for existing DB
+        try:
+            conn.execute("ALTER TABLE questions ADD COLUMN field_type TEXT")
+            conn.commit()
+        except sqlite3.OperationalError:
+            pass  # column already exists
         _get_connection._conn = conn
         logger.info("SQLite DB opened: %s", DB_PATH.resolve())
     return _get_connection._conn
@@ -153,8 +160,8 @@ def db_save_questions(job_id: str, checklist: Checklist) -> None:
     db.executemany(
         """
         INSERT INTO questions
-            (job_id, question_code, section, section_path, question, response_type, raw_line)
-        VALUES (?,?,?,?,?,?,?)
+            (job_id, question_code, section, section_path, question, response_type, field_type, raw_line)
+        VALUES (?,?,?,?,?,?,?,?)
         """,
         [
             (
@@ -164,6 +171,7 @@ def db_save_questions(job_id: str, checklist: Checklist) -> None:
                 json.dumps(q.section_path),
                 q.question,
                 q.response_type.value,
+                q.field_type,
                 q.raw_line,
             )
             for q in checklist.questions
@@ -227,6 +235,7 @@ def db_load_checklist(job_id: str) -> Optional[Checklist]:
             section_path=json.loads(r["section_path"]),
             question=r["question"],
             response_type=ResponseType(r["response_type"]),
+            field_type=r["field_type"] if "field_type" in r.keys() and r["field_type"] is not None else "Long Text",
             raw_line=r["raw_line"] or "",
         )
         for r in q_rows

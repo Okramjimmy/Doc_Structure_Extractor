@@ -14,7 +14,7 @@ from fastapi.responses import JSONResponse
 
 from app.config import settings
 from app.jobs import job_store
-from app.routers import export, extract, jobs
+from app.routers import export, extract, extract_semantic, jobs
 
 # ── Logging ───────────────────────────────────────────────────────────────────
 
@@ -50,9 +50,8 @@ async def lifespan(app: FastAPI):
     logger.info("   Upload dir : %s", settings.upload_dir.resolve())
     logger.info("   Output dir : %s", settings.output_dir.resolve())
     yield
-    # Purge expired jobs on shutdown
-    removed = job_store.purge_expired()
-    logger.info("🛑  Shutdown — purged %d expired jobs", removed)
+    # Persistent SQLite database preserves history; no auto-purge on shutdown.
+    logger.info("🛑  Shutdown complete")
 
 
 # ── App factory ───────────────────────────────────────────────────────────────
@@ -82,6 +81,7 @@ def create_app() -> FastAPI:
 
     # ── Routers ───────────────────────────────────────────────────────────────
     app.include_router(extract.router)
+    app.include_router(extract_semantic.router)
     app.include_router(jobs.router)
     app.include_router(export.router)
 

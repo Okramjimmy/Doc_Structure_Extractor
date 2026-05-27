@@ -78,3 +78,17 @@ def test_export_not_found():
 def test_export_invalid_format():
     r = client.get("/api/v1/export/some-id?format=xml")
     assert r.status_code == 422  # FastAPI enum validation
+
+
+# ── Semantic Extraction Endpoint ──────────────────────────────────────────────
+
+
+def test_upload_semantic_unsupported_type():
+    """Should reject .exe files with 415 on semantic extraction endpoint."""
+    fake_file = io.BytesIO(b"MZ\x90\x00")
+    r = client.post(
+        "/api/v1/extract-semantic",
+        files={"file": ("malware.exe", fake_file, "application/octet-stream")},
+    )
+    assert r.status_code == 415
+

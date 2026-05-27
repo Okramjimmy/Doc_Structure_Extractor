@@ -48,6 +48,7 @@ class Question(BaseModel):
     )
     question: str
     response_type: ResponseType = ResponseType.yes_no_na
+    field_type: str = Field("Long Text", description="Input field type, e.g. 'Long Text', 'Single Choice', 'Number'")
     raw_line: str = Field("", description="Original line from the document")
 
 
