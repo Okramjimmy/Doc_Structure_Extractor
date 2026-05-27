@@ -8,11 +8,11 @@ import textwrap
 import pytest
 
 from app.extractor import (
-    _clean_line,
+    _clean_plain,
     _infer_response_type,
     _is_heading_allcaps,
     _is_heading_atx,
-    _is_question,
+    _is_question_plain,
 )
 from app.schemas import ResponseType
 
@@ -61,25 +61,25 @@ _KEYWORDS = [
 
 class TestIsQuestion:
     def test_ends_with_question_mark(self):
-        assert _is_question("Has the system been tested?", _KEYWORDS) is True
+        assert _is_question_plain("Has the system been tested?", _KEYWORDS) is True
 
     def test_checkbox_unicode(self):
-        assert _is_question("☐ Verify backup procedures", _KEYWORDS) is True
+        assert _is_question_plain("☐ Verify backup procedures", _KEYWORDS) is True
 
     def test_markdown_checkbox(self):
-        assert _is_question("- [ ] Confirm audit trail enabled", _KEYWORDS) is True
+        assert _is_question_plain("- [ ] Confirm audit trail enabled", _KEYWORDS) is True
 
     def test_q_code_prefix(self):
-        assert _is_question("Q01. Does the policy cover all staff?", _KEYWORDS) is True
+        assert _is_question_plain("Q01. Does the policy cover all staff?", _KEYWORDS) is True
 
     def test_starts_with_keyword(self):
-        assert _is_question("Does the system log all transactions?", _KEYWORDS) is True
+        assert _is_question_plain("Does the system log all transactions?", _KEYWORDS) is True
 
     def test_short_line_skipped(self):
-        assert _is_question("Yes", _KEYWORDS) is False
+        assert _is_question_plain("Yes", _KEYWORDS) is False
 
     def test_plain_statement(self):
-        assert _is_question("The system is operational.", _KEYWORDS) is False
+        assert _is_question_plain("The system is operational.", _KEYWORDS) is False
 
 
 # ── Response type inference ───────────────────────────────────────────────────
@@ -104,13 +104,13 @@ class TestInferResponseType:
 
 class TestCleanLine:
     def test_strips_checkbox(self):
-        assert _clean_line("☐ Verify controls") == "Verify controls"
+        assert _clean_plain("☐ Verify controls") == "Verify controls"
 
     def test_strips_markdown_checkbox(self):
-        assert _clean_line("- [ ] Confirm audit") == "Confirm audit"
+        assert _clean_plain("- [ ] Confirm audit") == "Confirm audit"
 
     def test_strips_bold(self):
-        assert _clean_line("**Important** question?") == "Important question?"
+        assert _clean_plain("**Important** question?") == "Important question?"
 
     def test_strips_italic(self):
-        assert _clean_line("_Note_ this item") == "Note this item"
+        assert _clean_plain("_Note_ this item") == "Note this item"

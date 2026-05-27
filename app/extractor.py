@@ -52,7 +52,10 @@ _TABLE_HEADER_CELLS = {"description", "sl. no.", "sl no", "item", "particulars",
 _SL_NO = re.compile(r"^\s*\**\s*\d+\s*\**\s*$")
 
 # Response-type hint column keywords (columns 2+ that indicate a Yes/No table)
-_RESPONSE_COL_HINTS = {"yes/no/na", "yes/no", "y/n", "response", "complied"}
+_RESPONSE_COL_HINTS = {
+    "yes/no/na", "yes/no", "y/n", "response", "complied", "status",
+    "✓", "✗", "✔", "✘", "yes", "no", "na", "compliance", "conformance"
+}
 
 
 # ── Text helpers ──────────────────────────────────────────────────────────────
