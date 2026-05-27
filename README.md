@@ -44,6 +44,23 @@ cp .env.example .env
 uvicorn app.main:app --reload --reload-exclude "uploads" --reload-exclude "output" --reload-exclude "jobs.db*" --host 0.0.0.0 --port 8000
 ```
 
+### Running with PM2 (Production/Deployment)
+
+A PM2 config file [ecosystem.config.js](file:///Users/okrammeitei/Projects/doc_structure/ecosystem.config.js) is provided to manage the process in the background using your Conda environment.
+
+To start the app under PM2:
+```bash
+# Start the app
+pm2 start ecosystem.config.js
+
+# View logs
+pm2 logs doc-structure-extractor
+
+# Stop / Restart
+pm2 stop doc-structure-extractor
+pm2 restart doc-structure-extractor
+```
+
 **Interactive API docs:** http://localhost:8000/docs  
 **ReDoc docs:** http://localhost:8000/redoc  
 **Health check:** http://localhost:8000/health
